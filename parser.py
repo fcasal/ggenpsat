@@ -1,3 +1,25 @@
+## loc = "(assert (= (pr (not (and (=> (xor x y) x) (=> x (xor x y))))) (/ 1 2)))"
+# parsed = parse(loc)
+# print(parsed)
+# print(schemestr(parsed))
+# p.eval(parsed)
+#
+# print("\n/**********************/\n")
+# loc = "(assert (or (= (pr x) 0) (= (pr x) 1)))"
+# parsed = parse(loc)
+# print(parsed)
+# print(schemestr(parsed))
+# p.eval(parsed)
+#
+# print("\n/**********************/\n")
+# loc = "(define y::bool)"
+# parsed = parse(loc)
+# print(parsed)
+# print(schemestr(parsed))
+# p.eval(parsed)
+#
+# print("\n/**********************/\n")
+# p.show()
 #
 
 def tokenize(chars):
@@ -46,12 +68,14 @@ class parser:
     def __init__(self):
         self.insidepr = []
         self.gamma = []
-        self.atlas = dict()
+        self.ghosts = dict()
+        self.atlas = dict() #vars alphapsi_i
         self.prtolira = []
         self.probform = []
         self.int_vars = []
         self.real_vars = []
         self.bool_vars = []
+        self.final = []
 
     def eval(self, x):
         "Evaluate an expression."
@@ -101,59 +125,55 @@ class parser:
         if self.real_vars:
             print("\nReal variables = " + str(self.real_vars))
 
-    def build_relf(self):
+    def build_and_declare(self):
         self.insidepr = list(set(self.insidepr))
+        self.gamma = list(set(self.gamma))
         self.relf = list(set(self.gamma + self.insidepr))
-        print(self.relf)
+
+        # print(self.relf)
         i = 0
         for form in self.relf:
             self.atlas[form] = 'apsi' + str(i)
+            self.final += '(define '+ self.atlas[form] +'::real)'
+            self.final += '(assert (and (<= '+ self.atlas[form] +' 1) (>= '+ self.atlas[form] +' 0)))'
+
+            self.ghosts[form] = 'gh' + str(i)
             i += 1
+        # build B set
+        self.b = self.bool_vars + self.ghosts.values()
+        # self.bcopies = [map(lambda x: str(i+1)+x, self.b) for i in range(len(self.atlas.values()))]
+
+        # print self.bcopies
+
 
     def PrToLIRA(self):
         for form in self.probform:
             for psi in self.insidepr:
                 if '(pr ' + psi + ')' in form:
                     upd = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
+                    # print(upd)
                     self.prtolira += [upd]
-                    # update prtolira set
+        s = " ".join(self.prtolira)
+        form = '(assert (and ' + s + '))'
+        self.final += form
+        print(form)
 
     def hard_constr(self):
         l = [self.atlas.get(form, None) for form in self.gamma]
-        print(" ".join(l))
+        l = map(lambda s: '(= ' + s + ' 1)', l)
+        s = " ".join(l)
+        form = '(assert (and ' + s + '))'
+        self.final += form
+        print(form)
 
 p = parser()
 
-# loc = "(assert (= (pr (not (and (=> (xor x y) x) (=> x (xor x y))))) (/ 1 2)))"
-# parsed = parse(loc)
-# print(parsed)
-# print(schemestr(parsed))
-# p.eval(parsed)
-#
-# print("\n/**********************/\n")
-# loc = "(assert (or (= (pr x) 0) (= (pr x) 1)))"
-# parsed = parse(loc)
-# print(parsed)
-# print(schemestr(parsed))
-# p.eval(parsed)
-#
-# print("\n/**********************/\n")
-# loc = "(define y::bool)"
-# parsed = parse(loc)
-# print(parsed)
-# print(schemestr(parsed))
-# p.eval(parsed)
-#
-# print("\n/**********************/\n")
-# p.show()
-#
 
 with open('ex1') as fp:
     for line in fp:
-        # print(line)
         p.eval(parse(line))
 
+p.build_and_declare()
 p.show()
-p.build_relf()
 p.PrToLIRA()
 p.hard_constr()
