@@ -63,7 +63,7 @@ def schemestr(exp):
         return str(exp)
 
 
-class parser:
+class translation:
 
     def __init__(self):
         self.insidepr = []
@@ -141,7 +141,7 @@ class parser:
             self.ghosts[form] = 'gh' + str(i)
             i += 1
 
-        print("GHOST KEYS = " + str(self.ghosts.keys()))
+        # print("GHOST KEYS = " + str(self.ghosts.keys()))
         # build B set
         self.b = self.ghosts.values()
         self.bcopies = [map(lambda x:  x + '@' + str(i), self.b) for i in range(1, len(self.atlas.values()) + 2 )]
@@ -152,8 +152,6 @@ class parser:
             self.final += '(define '+ ghost +'::bool)\n'
 
         aux = [item for sublist in self.bool_vars_copies for item in sublist]
-        print self.bool_vars_copies
-        print self.bcopies
 
         for ghost in aux:
             self.final += '(define '+ ghost +'::bool)\n'
@@ -178,26 +176,20 @@ class parser:
         for i in range(sizeG):
             # val1
             self.final += '(assert (= (+ ' + ' '.join(self.bvars[i]) + ') '+ self.atlas[self.relf[i]] +'))\n'
-
             # prop_prob
             for k in range(sizeG + 1):
                 aux = self.relf[i]
                 for idx, var in enumerate(self.bool_vars_copies[k]):
                     if (' '+self.bool_vars[idx]+' ' in aux) or (' '+self.bool_vars[idx]+ ')' in aux):
                         aux = aux.replace(' ' + self.bool_vars[idx] + ' ', ' '+var+ ' ')
-                        # print aux
                         aux = aux.replace(' '+self.bool_vars[idx]+ ')', ' '+var+ ')')
                     if self.bool_vars[idx] == aux:
                         aux = aux.replace(self.bool_vars[idx], var)
-                        # print aux
-                print  aux
                 self.final += '(assert (<=> {} {}))\n'.format(self.bcopies[k][i], aux)
 
             for j in range(sizeG + 1):
-
                 # cons (bcopies??)
                 self.final += '(assert (<=> (= {} 1) {}))\n'.format(self.hvars[i][j], self.bcopies[j][i])
-
                 # val2
                 self.final += '(assert (<= 0 {}))\n'.format(self.bvars[i][j])
                 self.final += '(assert (<= {} {}))\n'.format(self.bvars[i][j], self.hvars[i][j])
@@ -211,13 +203,10 @@ class parser:
             for psi in self.insidepr:
                 if '(pr ' + psi + ')' in form:
                     upd = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
-                    # print(upd)
                     self.prtolira += [upd]
-        # print(self.prtolira)
         s = " ".join(self.prtolira)
         form = '(assert (and ' + s + '))\n'
         self.final += form
-        print(form)
 
     def hard_constr(self):
         l = [self.atlas.get(form, None) for form in self.gamma]
@@ -225,26 +214,31 @@ class parser:
         s = " ".join(l)
         form = '(assert (and ' + s + '))\n'
         self.final += form
-        print(form)
 
     def finalize(self, filename):
         self.final += '(check)'
-        self.final += '\n(show-model)'
-        with open(filename, 'w') as f:
+        # self.final += '\n(show-model)'
+        with open(filename, 'w+') as f:
             f.write(self.final)
 
     def begin(self, filename):
         with open(filename) as fp:
             for line in fp:
-                p.eval(parse(line))
+                self.eval(parse(line))
 
+def ggenpsat(iname, oname = None):
+    p = translation()
+    p.begin(iname)
+    p.build_and_declare()
+    # p.show()
+    p.PrToLIRA()
+    p.hard_constr()
+    if oname == None:
+        p.finalize('ans_' + iname)
+    else:
+        p.finalize(oname)
 
-
-filename = 'ex1'
-p = parser()
-p.begin(filename)
-p.build_and_declare()
-p.show()
-p.PrToLIRA()
-p.hard_constr()
-p.finalize('ans'+filename)
+#
+#
+# filename = 'ex1'
+# ggenpsat(filename)

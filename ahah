@@ -254,4 +254,3 @@
 (assert (and (= apsi3 (/ 1 2)) (or (= apsi1 0) (= apsi1 1))))
 (assert (and (= apsi0 1) (= apsi2 1)))
 (check)
-(show-model)
