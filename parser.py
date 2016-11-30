@@ -75,7 +75,7 @@ class parser:
         self.int_vars = []
         self.real_vars = []
         self.bool_vars = []
-        self.final = []
+        self.final = ""
 
     def eval(self, x):
         "Evaluate an expression."
@@ -132,19 +132,79 @@ class parser:
 
         # print(self.relf)
         i = 0
+
         for form in self.relf:
             self.atlas[form] = 'apsi' + str(i)
-            self.final += '(define '+ self.atlas[form] +'::real)'
-            self.final += '(assert (and (<= '+ self.atlas[form] +' 1) (>= '+ self.atlas[form] +' 0)))'
+            self.final += '(define '+ self.atlas[form] +'::real)\n'
+            self.final += '(assert (and (<= '+ self.atlas[form] +' 1) (>= '+ self.atlas[form] +' 0)))\n'
 
             self.ghosts[form] = 'gh' + str(i)
             i += 1
+
+        print("GHOST KEYS = " + str(self.ghosts.keys()))
         # build B set
-        self.b = self.bool_vars + self.ghosts.values()
-        # self.bcopies = [map(lambda x: str(i+1)+x, self.b) for i in range(len(self.atlas.values()))]
+        self.b = self.ghosts.values()
+        self.bcopies = [map(lambda x:  x + '@' + str(i), self.b) for i in range(1, len(self.atlas.values()) + 2 )]
+        self.bool_vars_copies = [map(lambda x:  x + '@' + str(i), self.bool_vars) for i in range(1, len(self.atlas.values()) + 2 )]
+        # print(self.bcopies)
+        aux = [item for sublist in self.bcopies for item in sublist]
+        for ghost in aux:
+            self.final += '(define '+ ghost +'::bool)\n'
 
-        # print self.bcopies
+        aux = [item for sublist in self.bool_vars_copies for item in sublist]
+        print self.bool_vars_copies
+        print self.bcopies
 
+        for ghost in aux:
+            self.final += '(define '+ ghost +'::bool)\n'
+        sizeG = len(self.relf)
+
+        self.hvars = [["h"+str(i)+"@"+str(j) for j in range(sizeG + 1)] for i in range(sizeG)]
+        self.bvars = [["b"+str(i)+"@"+str(j) for j in range(sizeG + 1)] for i in range(sizeG)]
+        self.pivars = ['pi' + str(j) for j in range(sizeG + 1)]
+
+        for i in range(sizeG):
+            for j in range(sizeG + 1):
+                self.final += '(define '+ self.hvars[i][j] +'::int)\n'
+                self.final += '(assert (or (= '+ self.hvars[i][j] +' 1) (= '+ self.hvars[i][j] +' 0)))\n'
+
+                self.final += '(define '+ self.bvars[i][j] +'::real)\n'
+                self.final += '(assert (and (<= '+ self.bvars[i][j] +' 1) (>= '+ self.bvars[i][j] +' 0)))\n'
+            self.final += '(define ' + self.pivars[i] + '::real)\n'
+            self.final += '(assert (and (<= '+ self.pivars[i] +' 1) (>= '+ self.pivars[i] +' 0)))\n'
+        self.final += '(define ' + self.pivars[sizeG] + '::real)\n'
+        self.final += '(assert (and (<= '+ self.pivars[sizeG] +' 1) (>= '+ self.pivars[sizeG] +' 0)))\n'
+
+        for i in range(sizeG):
+            # val1
+            self.final += '(assert (= (+ ' + ' '.join(self.bvars[i]) + ') '+ self.atlas[self.relf[i]] +'))\n'
+
+            # prop_prob
+            for k in range(sizeG + 1):
+                aux = self.relf[i]
+                for idx, var in enumerate(self.bool_vars_copies[k]):
+                    if (' '+self.bool_vars[idx]+' ' in aux) or (' '+self.bool_vars[idx]+ ')' in aux):
+                        aux = aux.replace(' ' + self.bool_vars[idx] + ' ', ' '+var+ ' ')
+                        # print aux
+                        aux = aux.replace(' '+self.bool_vars[idx]+ ')', ' '+var+ ')')
+                    if self.bool_vars[idx] == aux:
+                        aux = aux.replace(self.bool_vars[idx], var)
+                        # print aux
+                print  aux
+                self.final += '(assert (<=> {} {}))\n'.format(self.bcopies[k][i], aux)
+
+            for j in range(sizeG + 1):
+
+                # cons (bcopies??)
+                self.final += '(assert (<=> (= {} 1) {}))\n'.format(self.hvars[i][j], self.bcopies[j][i])
+
+                # val2
+                self.final += '(assert (<= 0 {}))\n'.format(self.bvars[i][j])
+                self.final += '(assert (<= {} {}))\n'.format(self.bvars[i][j], self.hvars[i][j])
+                self.final += '(assert (<= (+ {} {} -1) {}))\n'.format(self.hvars[i][j], self.pivars[j], self.bvars[i][j])
+                self.final += '(assert (<= {} {}))\n'.format(self.bvars[i][j], self.pivars[j])
+        # sums1
+        self.final += '(assert (= (+ {}) 1))\n'.format(" ".join(self.pivars))
 
     def PrToLIRA(self):
         for form in self.probform:
@@ -153,8 +213,9 @@ class parser:
                     upd = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
                     # print(upd)
                     self.prtolira += [upd]
+        # print(self.prtolira)
         s = " ".join(self.prtolira)
-        form = '(assert (and ' + s + '))'
+        form = '(assert (and ' + s + '))\n'
         self.final += form
         print(form)
 
@@ -162,18 +223,28 @@ class parser:
         l = [self.atlas.get(form, None) for form in self.gamma]
         l = map(lambda s: '(= ' + s + ' 1)', l)
         s = " ".join(l)
-        form = '(assert (and ' + s + '))'
+        form = '(assert (and ' + s + '))\n'
         self.final += form
         print(form)
 
+    def finalize(self, filename):
+        self.final += '(check)'
+        self.final += '\n(show-model)'
+        with open(filename, 'w') as f:
+            f.write(self.final)
+
+    def begin(self, filename):
+        with open(filename) as fp:
+            for line in fp:
+                p.eval(parse(line))
+
+
+
+filename = 'ex1'
 p = parser()
-
-
-with open('ex1') as fp:
-    for line in fp:
-        p.eval(parse(line))
-
+p.begin(filename)
 p.build_and_declare()
 p.show()
 p.PrToLIRA()
 p.hard_constr()
+p.finalize('ans'+filename)
