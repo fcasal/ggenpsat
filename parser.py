@@ -1,27 +1,3 @@
-## loc = "(assert (= (pr (not (and (=> (xor x y) x) (=> x (xor x y))))) (/ 1 2)))"
-# parsed = parse(loc)
-# print(parsed)
-# print(schemestr(parsed))
-# p.eval(parsed)
-#
-# print("\n/**********************/\n")
-# loc = "(assert (or (= (pr x) 0) (= (pr x) 1)))"
-# parsed = parse(loc)
-# print(parsed)
-# print(schemestr(parsed))
-# p.eval(parsed)
-#
-# print("\n/**********************/\n")
-# loc = "(define y::bool)"
-# parsed = parse(loc)
-# print(parsed)
-# print(schemestr(parsed))
-# p.eval(parsed)
-#
-# print("\n/**********************/\n")
-# p.show()
-#
-
 def tokenize(chars):
     "Convert a string of characters into a list of tokens."
     return chars.replace('(', ' ( ').replace(')', ' ) ').split()
@@ -130,9 +106,7 @@ class translation:
         self.gamma = list(set(self.gamma))
         self.relf = list(set(self.gamma + self.insidepr))
 
-        # print(self.relf)
         i = 0
-
         for form in self.relf:
             self.atlas[form] = 'apsi' + str(i)
             self.final += '(define '+ self.atlas[form] +'::real)\n'
@@ -141,12 +115,10 @@ class translation:
             self.ghosts[form] = 'gh' + str(i)
             i += 1
 
-        # print("GHOST KEYS = " + str(self.ghosts.keys()))
         # build B set
         self.b = self.ghosts.values()
         self.bcopies = [map(lambda x:  x + '@' + str(i), self.b) for i in range(1, len(self.atlas.values()) + 2 )]
         self.bool_vars_copies = [map(lambda x:  x + '@' + str(i), self.bool_vars) for i in range(1, len(self.atlas.values()) + 2 )]
-        # print(self.bcopies)
         aux = [item for sublist in self.bcopies for item in sublist]
         for ghost in aux:
             self.final += '(define '+ ghost +'::bool)\n'
@@ -174,9 +146,9 @@ class translation:
         self.final += '(assert (and (<= '+ self.pivars[sizeG] +' 1) (>= '+ self.pivars[sizeG] +' 0)))\n'
 
         for i in range(sizeG):
-            # val1
+            # val1 restriction
             self.final += '(assert (= (+ ' + ' '.join(self.bvars[i]) + ') '+ self.atlas[self.relf[i]] +'))\n'
-            # prop_prob
+            # prop_prob restriction
             for k in range(sizeG + 1):
                 aux = self.relf[i]
                 for idx, var in enumerate(self.bool_vars_copies[k]):
@@ -188,14 +160,14 @@ class translation:
                 self.final += '(assert (<=> {} {}))\n'.format(self.bcopies[k][i], aux)
 
             for j in range(sizeG + 1):
-                # cons (bcopies??)
+                # cons restriction
                 self.final += '(assert (<=> (= {} 1) {}))\n'.format(self.hvars[i][j], self.bcopies[j][i])
-                # val2
+                # val2 restriction
                 self.final += '(assert (<= 0 {}))\n'.format(self.bvars[i][j])
                 self.final += '(assert (<= {} {}))\n'.format(self.bvars[i][j], self.hvars[i][j])
                 self.final += '(assert (<= (+ {} {} -1) {}))\n'.format(self.hvars[i][j], self.pivars[j], self.bvars[i][j])
                 self.final += '(assert (<= {} {}))\n'.format(self.bvars[i][j], self.pivars[j])
-        # sums1
+        # sums1 restriction
         self.final += '(assert (= (+ {}) 1))\n'.format(" ".join(self.pivars))
 
     def PrToLIRA(self):
@@ -205,14 +177,14 @@ class translation:
                     upd = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
                     self.prtolira += [upd]
         s = " ".join(self.prtolira)
-        form = '(assert (and ' + s + '))\n'
+        form = '(assert (and {}}))\n'.format(s)
         self.final += form
 
     def hard_constr(self):
         l = [self.atlas.get(form, None) for form in self.gamma]
         l = map(lambda s: '(= ' + s + ' 1)', l)
         s = " ".join(l)
-        form = '(assert (and ' + s + '))\n'
+        form = '(assert (and {}))\n'.format(s)
         self.final += form
 
     def finalize(self, filename):
@@ -237,8 +209,3 @@ def ggenpsat(iname, oname = None):
         p.finalize('ans_' + iname)
     else:
         p.finalize(oname)
-
-#
-#
-# filename = 'ex1'
-# ggenpsat(filename)
