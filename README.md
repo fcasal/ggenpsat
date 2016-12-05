@@ -26,8 +26,8 @@ One example of this format is the following
 
 (assertprop (or (not x) x))
 
-(assert (or (= (pr y) 0) (= (pr y) 1)))
 (assert (= (pr (not (<=> (xor x y) y))) (/ 1 2)))
+(assert (or (= (pr y) 0) (= (pr y) 1)))
 (check)
 ```
 

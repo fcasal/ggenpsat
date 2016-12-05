@@ -1,0 +1,16 @@
+
+(define k::bool)
+(define kp::bool)
+(define r1::bool)
+(define r2::bool)
+
+(assert (not (= (pr (xor k (and r1 r2))) (pr (xor kp (and r1 r2))))))
+
+(assert (or (= (pr k) 0) (= (pr k) 1)))
+(assert (or (= (pr kp) 0) (= (pr kp) 1)))
+
+(assert (= (pr (and r1 r2)) (/ 1 4)))
+(assert (= (pr r1) (/ 1 2)))
+(assert (= (pr r2) (/ 1 2)))
+(check)
+(show-model)

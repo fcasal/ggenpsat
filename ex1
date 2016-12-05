@@ -1,9 +1,0 @@
-(define x::bool)
-(define y::bool)
-(assertprop (or x (not x)))
-(assertprop (or y (not y)))
-
-(assert (= (pr (not         ( and (=> (xor x y) x) (=> x (xor x y))))) (/ 1 2)))
-(assert (or (= (pr y) 0) (=     (  pr y) 1)))
-(check)
-(show-model)

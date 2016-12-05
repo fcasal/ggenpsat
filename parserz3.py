@@ -109,7 +109,7 @@ class translation:
         i = 0
         for form in self.relf:
             self.atlas[form] = 'apsi' + str(i)
-            self.final += '(define '+ self.atlas[form] +'::real)\n'
+            self.final += '(declare-const '+ self.atlas[form] +' Real)\n'
             self.final += '(assert (and (<= '+ self.atlas[form] +' 1) (>= '+ self.atlas[form] +' 0)))\n'
 
             self.ghosts[form] = 'gh' + str(i)
@@ -121,12 +121,12 @@ class translation:
         self.bool_vars_copies = [map(lambda x:  x + '@' + str(i), self.bool_vars) for i in range(1, len(self.atlas.values()) + 2 )]
         aux = [item for sublist in self.bcopies for item in sublist]
         for ghost in aux:
-            self.final += '(define '+ ghost +'::bool)\n'
+            self.final += '(declare-const '+ ghost +' Bool)\n'
 
         aux = [item for sublist in self.bool_vars_copies for item in sublist]
 
         for ghost in aux:
-            self.final += '(define '+ ghost +'::bool)\n'
+            self.final += '(declare-const '+ ghost +' Bool)\n'
         sizeG = len(self.relf)
 
         self.hvars = [["h"+str(i)+"@"+str(j) for j in range(sizeG + 1)] for i in range(sizeG)]
@@ -135,14 +135,14 @@ class translation:
 
         for i in range(sizeG):
             for j in range(sizeG + 1):
-                self.final += '(define '+ self.hvars[i][j] +'::int)\n'
+                self.final += '(declare-const '+ self.hvars[i][j] +' Int)\n'
                 self.final += '(assert (or (= '+ self.hvars[i][j] +' 1) (= '+ self.hvars[i][j] +' 0)))\n'
 
-                self.final += '(define '+ self.bvars[i][j] +'::real)\n'
+                self.final += '(declare-const '+ self.bvars[i][j] +' Real)\n'
                 self.final += '(assert (and (<= '+ self.bvars[i][j] +' 1) (>= '+ self.bvars[i][j] +' 0)))\n'
-            self.final += '(define ' + self.pivars[i] + '::real)\n'
+            self.final += '(declare-const ' + self.pivars[i] + ' Real)\n'
             self.final += '(assert (and (<= '+ self.pivars[i] +' 1) (>= '+ self.pivars[i] +' 0)))\n'
-        self.final += '(define ' + self.pivars[sizeG] + '::real)\n'
+        self.final += '(declare-const ' + self.pivars[sizeG] + ' Real)\n'
         self.final += '(assert (and (<= '+ self.pivars[sizeG] +' 1) (>= '+ self.pivars[sizeG] +' 0)))\n'
 
         for i in range(sizeG):
@@ -157,11 +157,12 @@ class translation:
                         aux = aux.replace(' '+self.bool_vars[idx]+ ')', ' '+var+ ')')
                     if self.bool_vars[idx] == aux:
                         aux = aux.replace(self.bool_vars[idx], var)
-                self.final += '(assert (<=> {} {}))\n'.format(self.bcopies[k][i], aux)
+                self.final += '(assert (and (=> {} {}) (=> {} {})))\n'.format(self.bcopies[k][i], aux, aux, self.bcopies[k][i])
 
             for j in range(sizeG + 1):
                 # cons restriction
-                self.final += '(assert (<=> (= {} 1) {}))\n'.format(self.hvars[i][j], self.bcopies[j][i])
+                self.final += '(assert (and (=> (= {} 1) {}) (=> {} (= {} 1))))\n'.format(self.hvars[i][j], self.bcopies[j][i], \
+                                    self.bcopies[j][i], self.hvars[i][j])
                 # val2 restriction
                 self.final += '(assert (<= 0 {}))\n'.format(self.bvars[i][j])
                 self.final += '(assert (<= {} {}))\n'.format(self.bvars[i][j], self.hvars[i][j])
@@ -171,16 +172,15 @@ class translation:
         self.final += '(assert (= (+ {}) 1))\n'.format(" ".join(self.pivars))
 
     def PrToLIRA(self):
-        if self.probform != []:
-            for form in self.probform:
-                for psi in self.insidepr:
-                    if '(pr ' + psi + ')' in form:
-                        print(form)
-                        form = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
-                self.prtolira += [form]
-            s = " ".join(self.prtolira)
-            form = '(assert (and {}))\n'.format(s)
-            self.final += form
+        for form in self.probform:
+            for psi in self.insidepr:
+                if '(pr ' + psi + ')' in form:
+                    print(form)
+                    form = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
+            self.prtolira += [form]
+        s = " ".join(self.prtolira)
+        form = '(assert (and {}))\n'.format(s)
+        self.final += form
 
     def hard_constr(self):
         l = [self.atlas.get(form, None) for form in self.gamma]
@@ -191,7 +191,7 @@ class translation:
             self.final += form
 
     def finalize(self, filename):
-        self.final += '(check)'
+        self.final += '(check-sat)'
         # self.final += '\n(show-model)'
         with open(filename, 'w+') as f:
             f.write(self.final)
@@ -209,6 +209,6 @@ def ggenpsat(iname, oname = None):
     p.PrToLIRA()
     p.hard_constr()
     if oname == None:
-        p.finalize('ans')
+        p.finalize('z3ans_' + iname)
     else:
         p.finalize(oname)
