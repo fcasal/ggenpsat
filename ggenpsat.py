@@ -11,11 +11,13 @@ def main():
     parser.add_argument("--z3", "-z3", dest = "solver")
 
     args = parser.parse_args()
-    print args.solver
+    # print args.solver
     if args.solver == None:
         ggenpsat(args.inp, args.out)
     else:
         parserz3.ggenpsat(args.inp, args.out)
+
+
 
 if __name__ == "__main__":
     main()

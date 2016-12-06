@@ -1,7 +1,8 @@
 # ignore tmp files (usually very large)
 /tmp/*.*
+/batchexamples/*
 
-
+batchsolve.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
