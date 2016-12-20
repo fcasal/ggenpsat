@@ -51,7 +51,7 @@ class translation:
         self.int_vars = []
         self.real_vars = []
         self.bool_vars = []
-        self.final = "(set-timeout 10)\n"
+        self.final = "(set-timeout 120)\n"
 
     def eval(self, x):
         "Evaluate an expression."
