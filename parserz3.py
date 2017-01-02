@@ -51,7 +51,7 @@ class translation:
         self.int_vars = []
         self.real_vars = []
         self.bool_vars = []
-        self.final = ""
+        self.final = "(set-option :timeout 120000)\n"
 
     def eval(self, x):
         "Evaluate an expression."
@@ -175,7 +175,7 @@ class translation:
         for form in self.probform:
             for psi in self.insidepr:
                 if '(pr ' + psi + ')' in form:
-                    print(form)
+                    # print(form)
                     form = form.replace('(pr ' + psi + ')', self.atlas.get(psi, None))
             self.prtolira += [form]
         s = " ".join(self.prtolira)
@@ -205,7 +205,7 @@ def ggenpsat(iname, oname = None):
     p = translation()
     p.begin(iname)
     p.build_and_declare()
-    p.show()
+    # p.show()
     p.PrToLIRA()
     p.hard_constr()
     if oname == None:
