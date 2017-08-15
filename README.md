@@ -39,5 +39,5 @@ which corresponds to the GGenPSAT problem
 * v0.1 -- Initial release in December 2016
 
 ## References
-* [1] C. Caleiro, F. Casal, and A. Mordido. _Classical Generalized probabilistic satisfiability_. [Preprint](http://sqig.math.ist.utl.pt/pub/CaleiroC/16-CCM-ggenpsat.pdf), SQIG - IT and IST - U Lisboa, 1049-001 Lisboa, Portugal, 2016.
+* [1] C. Caleiro, F. Casal, and A. Mordido. _Classical Generalized probabilistic satisfiability_. [PDF](https://doi.org/10.24963/ijcai.2017/126), Proceedings of the Twenty-Sixth International Joint Conference on Artificial Intelligence, Main track. Pages 908-914, IJCAI-17, 2017.
 * [2] R. Fagin, J. Y. Halpern, and N. Megiddo. _A logic for reasoning about probabilities_. Inf. Comput., 87(1-2):78–128, 1990.
