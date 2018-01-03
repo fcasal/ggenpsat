@@ -1,3 +1,5 @@
+'''parsing functions based on Norvig's http://norvig.com/lispy.html'''
+
 def tokenize(chars):
     "Convert a string of characters into a list of tokens."
     return chars.replace('(', ' ( ').replace(')', ' ) ').split()
