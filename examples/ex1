@@ -3,6 +3,6 @@
 (define y::bool)
 
 (assert (= (pr (not (and (=> (xor x y) x) (=> x (xor x y))))) (/ 1 2)))
-(assert (or (= (pr x) 0) (= (pr x) 1)))
+(assert (or (= (pr y) 0) (= (pr y) 1)))
 (check)
 (show-model)

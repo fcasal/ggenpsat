@@ -1,0 +1,15 @@
+
+(define a1::bool)
+(define a2::bool)
+(define a3::bool)
+(define a4::bool)
+(define a5::bool)
+(define a6::bool)
+
+(assert (>= (pr (<=> a4 (and a1 a2))) 0.97))
+(assert (>= (pr (<=> a5 (or a3 a4))) 0.99))
+(assertprop (<=> a6 (not a5)))
+
+(assert (not (>= (pr (<=> a6 (not (or a3 (and a1 a2))))) 0.96)))
+
+(check)

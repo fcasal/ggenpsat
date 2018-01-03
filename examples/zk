@@ -1,0 +1,16 @@
+
+(define s::bool)
+(define c::bool)
+(define a::bool)
+
+(assertprop (=> (and s c) a))
+(assertprop (=> (and s (not c)) a))
+(assertprop (=> (and (not s) c) (not a)))
+(assertprop (=> (and (not s) (not c)) a))
+(assert (= (pr (not c)) (/ 1 2)))
+
+(assert (=> (= (pr s) 1) (= (pr a) 1)))
+(assert (=> (= (pr (not s)) 1) (< (pr a) 1)))
+
+(check)
+(show-model)

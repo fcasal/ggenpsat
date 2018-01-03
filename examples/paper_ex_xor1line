@@ -1,0 +1,4 @@
+(define x::bool)
+(define y::bool)
+(assert (and (>= (pr (not (xor x y))) (* 2 (pr (xor x y)))) (> (pr (xor x y)) 0) (or (= (pr y) 0) (= (pr y) 1)) (= (pr x) 0)))
+(check)
