@@ -1,0 +1,8 @@
+(define k::bool)
+(define kp::bool)
+(define r1::bool)
+(define r2::bool)
+(define r3::bool)
+
+(assert (and (not (=                     (pr (xor k  (and (=> (xor r1 r2) r1) (=> (not (xor r1 r2)) r3))))                    (pr (xor kp (and (=> (xor r1 r2) r1) (=> (not (xor r1 r2)) r3))))))             (or (= (pr k) 0) (= (pr k) 1))             (or (= (pr kp) 0) (= (pr kp) 1))             (= (pr (and r1 r2 r3)) (/ 1 18))             (= (pr (and r1 r2)) (/ 1 9))             (= (pr (and r1 r3)) (/ 1 6))             (= (pr (and r2 r3)) (/ 1 6))             (= (pr r1) (/ 1 3))             (= (pr r2) (/ 1 3))             (= (pr r3) (/ 1 2))))
+(check)
