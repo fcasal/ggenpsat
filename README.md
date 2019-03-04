@@ -21,8 +21,8 @@ The solver accepts input files in a similar format to standard smt-lib:
 One example of this format is the following
 
 ```ml
-(define x::Bool)
-(define y::Bool)
+(define x::bool)
+(define y::bool)
 
 (assertprop (or (not x) x))
 
