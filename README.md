@@ -8,11 +8,9 @@ GGenPSAT solver
 * yices
 
 ## Run
-Use `python ggenpsat.py -i ifile -o ofile` to run the program on
-* input file ifile
 
-and
-* output the the smt-lib translation file ofile.
+* Use `python ggenpsat.py -i ifile -o ofile` to run the program on input file **ifile** and output the the smt-lib translation file **ofile**.
+* Then, use `yices ofile` to run Yices on the translated file **ofile**. If this command returns **sat** the original problem is satisfiable, otherwise the original problem is unsatisfiable.
 
 ## Input file format
 The solver accepts input files in a similar format to standard smt-lib:
